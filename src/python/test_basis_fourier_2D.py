@@ -12,7 +12,7 @@ import Sketching as sketch
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
 SIZE = (100, 100)
-K = 100
+K = 200
 
 # Import the image.
 img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)), SIZE)
