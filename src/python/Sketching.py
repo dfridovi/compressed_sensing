@@ -3,7 +3,7 @@ A set of functions for sketching (i.e. randomly compressing to low-rank) an imag
 """
 
 import numpy as np
-import cvxopt as cvx
+import cvxpy as cvx
 
 def basisFourier(img, k):
     """ Extract the 'k' Fourier basis vectors with the top projection coefficients. """
@@ -47,20 +47,21 @@ def basisSketchL1(img, k, alpha=1.0):
     1. Choose a random basis with 'k' elements.
     2. Solve the L1-penalized least-squares problem to obtain the representation.
     
-    min_x ||y - Ax||_2^2 + alpha * ||x||_1 : y = image, x = representation, A = basis
+    min_x ||Ax - y||_2^2 + alpha * ||x||_1 : y = image, x = representation, A = basis
     """
 
     # Unravel this image into a single column vector.
-    img_vector = img.ravel()
-
+    img_vector = np.asmatrix(img.ravel()).T
+    
     # Generate a random basis.
-    basis = cvx.normal(len(img_vector), k)
+    basis = np.random.randn(len(img_vector), k)
 
     # Construct the problem.
-    coefficients = cvx.modeling.variable(k, 'coefficients')
-    L2 = (img_vector - basis * coefficients).T * (img_vector - basis * coefficients)
-    L1 = cvx.modeling.sum(cvx.modeling.abs(coefficients))
-    problem = cvx.modeling.op(L2 + alpha * L1)
+    coefficients = cvx.Variable(k)
+    L2 = cvx.norm(basis * coefficients - img_vector, 2)
+    L1 = cvx.norm(coefficients, 1)
+    objective = cvx.Minimize(L2**2 + alpha * L1)
+    problem = cvx.Problem(objective)
 
     # Solve.
     problem.solve()
