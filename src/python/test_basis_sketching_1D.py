@@ -8,8 +8,8 @@ import Sketching as sketch
 
 # Parameters.
 LENGTH = 1000
-K = 10
-ALPHA = 1.0
+K = 100
+ALPHA = 10.0
 
 # Generate a random 1D signal.
 signal = np.random.randn(LENGTH)

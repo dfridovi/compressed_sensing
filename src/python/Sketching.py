@@ -41,10 +41,10 @@ def basisFourier(img, k):
 
     return basis, coefficients
 
-def basisSketchL1(img, k, alpha=1.0):
+def basisSketchL1(img, alpha, basis_oversampling=1.0):
     """
     Sketch the image. Procedure: 
-    1. Choose a random basis with 'k' elements.
+    1. Choose a random basis.
     2. Solve the L1-penalized least-squares problem to obtain the representation.
     
     min_x ||Ax - y||_2^2 + alpha * ||x||_1 : y = image, x = representation, A = basis
@@ -54,16 +54,20 @@ def basisSketchL1(img, k, alpha=1.0):
     img_vector = np.asmatrix(img.ravel()).T
     
     # Generate a random basis.
-    basis = np.random.randn(len(img_vector), k)
+    basis = np.random.randn(len(img_vector),
+                            int(len(img_vector) * basis_oversampling))
 
     # Construct the problem.
-    coefficients = cvx.Variable(k)
+    coefficients = cvx.Variable(basis.shape[1])
     L2 = cvx.norm(basis * coefficients - img_vector, 2)
     L1 = cvx.norm(coefficients, 1)
-    objective = cvx.Minimize(L2**2 + alpha * L1)
+    objective = cvx.Minimize(L2**2) + alpha*cvx.Minimize(L1)
     problem = cvx.Problem(objective)
 
     # Solve.
-    problem.solve()
+    problem.solve(verbose=True, solver='CVXOPT')
 
+    # Print problem status.
+    print "Problem status: " + str(problem.status)
+    
     return basis, coefficients.value
