@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 def imread(imfile):
     """ Read image from file and normalize. """
     
-    img = mpimg.imread(imfile).astype(np.float)
+    img = mpimg.imread(imfile).astype(np.float32)
     img = rescale(img)
     return img
 

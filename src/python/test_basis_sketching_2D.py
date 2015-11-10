@@ -11,8 +11,8 @@ import Sketching as sketch
 # Parameters.
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
-SIZE = (30, 30)
-ALPHA = 10.0
+SIZE = (75, 75)
+ALPHA = 0.1
 BASIS_OVERSAMPLING = 1.0
 
 # Import the image.
