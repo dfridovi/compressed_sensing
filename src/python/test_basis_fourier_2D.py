@@ -11,8 +11,8 @@ import Sketching as sketch
 # Parameters.
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
-SIZE = (100, 100)
-K = 200
+SIZE = (76, 76)
+K = 76**2/2
 
 # Import the image.
 img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)), SIZE)
@@ -21,13 +21,8 @@ img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)), SIZE)
 basis, coefficients = sketch.basisFourier(img, K)
 
 # Compute reconstruction.
-reconstruction = np.zeros(img.shape) + 0j
-for i in range(K):
-    component = basis[:,i] * coefficients[i]
-    reconstruction += component.reshape(img.shape)
-
+reconstruction = (basis * coefficients).reshape(img.shape)
 reconstruction = np.absolute(reconstruction)
     
 # Plot.
-plt.figure(1); plt.imshow(img, cmap="gray"); plt.show()
-plt.figure(2); plt.imshow(reconstruction, cmap="gray"); plt.show()
+plt.figure(1); plt.imshow(reconstruction, cmap="gray"); plt.show()

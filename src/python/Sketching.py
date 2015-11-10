@@ -16,7 +16,7 @@ def basisFourier(img, k):
     
     # Record the top 'k' coefficients.
     sorted_indices = np.argsort(-1.0 * np.absolute(fourier))
-    coefficients = fourier[sorted_indices[:k]]
+    coefficients = np.asmatrix(fourier[sorted_indices[:k]]).T
 
     """
     # Zero out the rest and reconstruct.
@@ -26,7 +26,7 @@ def basisFourier(img, k):
     """
     
     # Generate basis matrix for these indices.
-    basis = np.zeros((len(img_vector), k))
+    basis = np.zeros((len(img_vector), k)) + 0.0j
     for i in range(k):
 
         # Set up a dummy vector with only one index high.
@@ -39,7 +39,7 @@ def basisFourier(img, k):
         # Append to basis matrix.
         basis[:, i] = basis_vector
 
-    return basis, coefficients
+    return np.asmatrix(basis), coefficients
 
 def basisSketchL1(img, alpha, basis_oversampling=1.0):
     """
