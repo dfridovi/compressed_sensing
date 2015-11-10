@@ -59,13 +59,14 @@ def basisSketchL1(img, alpha, basis_oversampling=1.0):
 
     # Construct the problem.
     coefficients = cvx.Variable(basis.shape[1])
-    L2 = cvx.norm(basis * coefficients - img_vector, 2)
+    L2 = cvx.sum_squares(basis * coefficients - img_vector)
     L1 = cvx.norm(coefficients, 1)
-    objective = cvx.Minimize(L2**2) + alpha*cvx.Minimize(L1)
-    problem = cvx.Problem(objective)
+    objective = cvx.Minimize(L2 + alpha*L1)
+    constraints = []
+    problem = cvx.Problem(objective, constraints)
 
     # Solve.
-    problem.solve(verbose=True, solver='CVXOPT')
+    problem.solve(verbose=True, solver='SCS')
 
     # Print problem status.
     print "Problem status: " + str(problem.status)
