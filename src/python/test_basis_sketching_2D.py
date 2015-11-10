@@ -12,7 +12,7 @@ import Sketching as sketch
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
 SIZE = (30, 30)
-ALPHA = 1.0
+ALPHA = 10.0
 BASIS_OVERSAMPLING = 1.0
 
 # Import the image.
@@ -27,6 +27,12 @@ reconstruction = (basis * coefficients).reshape(img.shape)
 # Plot.
 plt.figure(1)
 plt.imshow(reconstruction, cmap="gray")
+
+max_value = np.absolute(coefficients).max()
 plt.title(("Reconstruction using %d random basis vectors in image domain." %
-           (np.absolute(coefficients) > 1e-8).sum()))
+           (np.absolute(coefficients) > 0.01 * max_value).sum()))
+plt.show()
+
+plt.figure(2)
+plt.hist(np.absolute(coefficients), bins=len(coefficients) / 10)
 plt.show()
