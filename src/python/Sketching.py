@@ -194,7 +194,7 @@ def basisCompressedSenseDCTL1(img, alpha, basis_oversampling=1.0):
     img_measured = mixing_matrix * img_vector
 
     # Construct the problem.
-    coefficients = cvx.Variable(mixing_matrix.shape[1])
+    coefficients = cvx.Variable(len(img_vector))
     L2 = cvx.sum_squares(img_premultiplied*coefficients - img_measured)
     L1 = cvx.norm(coefficients, 1)
     objective = cvx.Minimize(L2 + alpha*L1)
@@ -208,3 +208,44 @@ def basisCompressedSenseDCTL1(img, alpha, basis_oversampling=1.0):
     print "Problem status: " + str(problem.status)
     
     return dct_basis, coefficients.value
+
+
+def basisCompressedSenseImgL1(img, alpha, basis_oversampling=1.0):
+    """
+    Sketch the image in the image domain. Procedure: 
+    1. Choose a random matrix to mix the DCT components.
+    2. Solve the L1-penalized least-squares problem to obtain the representation.
+    
+    min_x ||Ax - m||_2^2 + alpha * ||x||_1, where y = image, 
+                                                   x = representation, 
+                                                   A = mixing matrix,
+                                                   F = DCT basis (not applicable)
+                                                   m = Ay
+    """
+
+    # Unravel this image into a single column vector.
+    img_vector = np.asmatrix(img.ravel()).T
+    
+    # Generate a random mixing matrix.
+    mixing_matrix = np.random.randn(int(len(img_vector) * basis_oversampling),
+        len(img_vector))
+
+
+    # Determine m (samples)
+    img_measured = mixing_matrix * img_vector
+
+    # Construct the problem.
+    coefficients = cvx.Variable(len(img_vector))
+    L2 = cvx.sum_squares(mixing_matrix*coefficients - img_measured)
+    L1 = cvx.norm(coefficients, 1)
+    objective = cvx.Minimize(L2 + alpha*L1)
+    constraints = []
+    problem = cvx.Problem(objective, constraints)
+
+    # Solve.
+    problem.solve(verbose=True, solver='SCS')
+
+    # Print problem status.
+    print "Problem status: " + str(problem.status)
+    
+    return np.identity(len(img_vector)), coefficients.value
