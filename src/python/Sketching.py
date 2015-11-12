@@ -161,3 +161,50 @@ def basisSketchDCTL1(img, alpha, basis_oversampling=1.0):
     print "Problem status: " + str(problem.status)
     
     return dct_basis * mixing_matrix, coefficients.value
+
+
+
+def basisCompressedSenseDCTL1(img, alpha, basis_oversampling=1.0):
+    """
+    Sketch the image in the DCT domain. Procedure: 
+    1. Choose a random matrix to mix the DCT components.
+    2. Solve the L1-penalized least-squares problem to obtain the representation.
+    
+    min_x ||AFx - m||_2^2 + alpha * ||x||_1, where y = image, 
+                                                   x = representation, 
+                                                   A = mixing matrix,
+                                                   F = DCT basis
+                                                   m = Ay
+    """
+
+    # Unravel this image into a single column vector.
+    img_vector = np.asmatrix(img.ravel()).T
+    
+    # Generate a random mixing matrix.
+    mixing_matrix = np.random.randn(int(len(img_vector) * basis_oversampling),
+        len(img_vector))
+
+    # Generate DCT basis and premultiply image.
+    dct_basis = computeDCTBasis(len(img_vector))
+
+    # Pre-multiply image by basis mixing matrix (AF)
+    img_premultiplied = mixing_matrix * dct_basis.T
+
+    # Determine m (samples)
+    img_measured = mixing_matrix * img_vector
+
+    # Construct the problem.
+    coefficients = cvx.Variable(mixing_matrix.shape[1])
+    L2 = cvx.sum_squares(img_premultiplied*coefficients - img_measured)
+    L1 = cvx.norm(coefficients, 1)
+    objective = cvx.Minimize(L2 + alpha*L1)
+    constraints = []
+    problem = cvx.Problem(objective, constraints)
+
+    # Solve.
+    problem.solve(verbose=True, solver='SCS')
+
+    # Print problem status.
+    print "Problem status: " + str(problem.status)
+    
+    return dct_basis, coefficients.value
