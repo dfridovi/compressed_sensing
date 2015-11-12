@@ -11,8 +11,8 @@ import Sketching as sketch
 # Parameters.
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
-SIZE = (200, 200)
-ALPHA = 1.0
+SIZE = (50, 50)
+ALPHA = 2
 BASIS_OVERSAMPLING = 1.0
 
 # Import the image.
@@ -26,15 +26,20 @@ reconstruction = (basis * coefficients).reshape(img.shape)
     
 # Plot.
 plt.figure(1)
+plt.subplot(121)
 plt.imshow(reconstruction, cmap="gray")
 
 max_value = np.absolute(coefficients).max()
-plt.title(("Reconstruction using %d random basis vectors in image domain." %
-           (np.absolute(coefficients) > 0.01 * max_value).sum()))
-plt.savefig("sketching_%1.1f_l1_%d_reconstruction.png" % (ALPHA, SIZE[0]))
+plt.title("Reconstruction using random basis \n in image domain \n %.2f%% sparsity" %
+           (100.0-((np.absolute(coefficients) > 0.01 * max_value).sum()*100.0/(SIZE[0]*SIZE[1]))))
 
 
-plt.figure(2)
-plt.hist(np.absolute(coefficients), bins=len(coefficients) / 10)
-plt.savefig("sketching_%1.1f_l1_%d_histogram.png" % (ALPHA, SIZE[0]))
+
+ax = plt.subplot(122)
+plt.hist(np.absolute(coefficients), bins=len(coefficients) / 50)
+start, end = ax.get_xlim()
+ax.xaxis.set_ticks(np.arange(start, end, end/4))
+plt.xlabel("Coefficient Magnitude")
+plt.ylabel("Number of Coefficients")
+plt.title("Sparsity Histogram, alpha = %.1f" %ALPHA)
 plt.show()
