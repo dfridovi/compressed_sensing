@@ -12,8 +12,8 @@ import Sketching as sketch
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
 SIZE = (50, 50)
-ALPHA = 1
-BASIS_OVERSAMPLING = 0.7
+ALPHA = 100.0
+BASIS_OVERSAMPLING = 1.0
 
 # Import the image.
 img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)), SIZE).astype(np.float32)
