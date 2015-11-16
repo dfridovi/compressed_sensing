@@ -232,8 +232,8 @@ def computeSparsity(block_coefficients):
     sparsity = []
     for coefficients in block_coefficients:
         max_value = np.absolute(coefficients).max() 
-        sparsity.append(100.0-(((np.absolute(coefficients) > 0.01*max_value).sum())*100.0 /
-                                      size))
+        sparsity.append(100.0-(((np.absolute(coefficients) >
+                                 0.01*max_value).sum())*100.0 / size))
 
     return sparsity
         
@@ -250,8 +250,9 @@ def visualizeBlockwiseSparsity(blocks, sparsity, original_shape):
     # Iterate through the image and append to 'blocks.'
     for i in range(n_vert):
         for j in range(n_horiz):
-            new_image[i*k:(i+1)*k, j*k:(j+1)*k] = bf.adjustExposure(blocks[n_horiz*i + j],
-                                                                    1.0 - 0.01*sparsity[n_horiz*i + j])
+            new_image[i*k:(i+1)*k,
+                      j*k:(j+1)*k] = bf.adjustExposure(blocks[n_horiz*i + j],
+                                                       1.0 - 0.01*sparsity[n_horiz*i + j])
 
     return new_image
 
