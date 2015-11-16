@@ -154,7 +154,7 @@ def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
 
     return coefficients.value
 
-def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_processors=4):
+def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0):
     """
     Sketch the image blocks in the DCT domain. Procedure: 
     1. Choose a random matrix to mix the DCT components.
@@ -179,10 +179,6 @@ def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_process
     
     # Pre-multiply image by basis mixing matrix (AF)
     basis_premultiplied = mixing_matrix * dct_basis.T
-
-    # Make a processor pool.
-    print "Creating a processor pool." 
-    pool = Pool(num_processors)
 
     # Make a special function given these parameters.
     print "Creating a partial function."
