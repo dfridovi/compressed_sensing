@@ -124,10 +124,12 @@ def basisSketchL1(img, alpha, basis_oversampling=1.0):
     
     return basis, coefficients.value
 
-
 def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
     """ Run L1 compressed sensing given alpha and a basis."""
 
+    # Get block size.
+    block_len = block.shape[0] * block.shape[1]
+    
     # Unravel this image into a single column vector.
     img_vector = np.asmatrix(block.ravel()).T
     
@@ -150,9 +152,10 @@ def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
     print "Problem status: " + str(problem.status)
     sys.stdout.flush()
 
-"""
-def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_processors=4):
+    return coefficients.value
 
+def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_processors=4):
+    """
     Sketch the image blocks in the DCT domain. Procedure: 
     1. Choose a random matrix to mix the DCT components.
     2. Solve the L1-penalized least-squares problem to obtain the representation.
@@ -162,7 +165,7 @@ def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_process
                                                    A = mixing matrix,
                                                    F = DCT basis
                                                    m = Ay
-
+    """
 
     # Get block size.
     block_len = blocks[0].shape[0] * blocks[0].shape[1]
@@ -190,11 +193,9 @@ def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_process
     
     # Run compressed sensing on each block and store results.
     print "Running CS on the pool."
-    block_coefficients = pool.map(blockCS, blocks)
+    block_coefficients = map(blockCS, blocks)
 
     return dct_basis, block_coefficients
-"""
-
 
 def basisCompressedSenseImgL1(img, alpha, basis_oversampling=1.0):
     """

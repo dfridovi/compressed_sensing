@@ -21,18 +21,8 @@ BLOCK_SIZE = 30
 ALPHA = 1.0
 BASIS_OVERSAMPLING = 1.0
 
+"""
 def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_processors=4):
-    """
-    Sketch the image blocks in the DCT domain. Procedure: 
-    1. Choose a random matrix to mix the DCT components.
-    2. Solve the L1-penalized least-squares problem to obtain the representation.
-    
-    min_x ||AFx - m||_2^2 + alpha * ||x||_1, where y = image, 
-                                                   x = representation, 
-                                                   A = mixing matrix,
-                                                   F = DCT basis
-                                                   m = Ay
-    """
 
     # Get block size.
     block_len = blocks[0].shape[0] * blocks[0].shape[1]
@@ -65,7 +55,6 @@ def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_process
     return dct_basis, block_coefficients
 
 def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
-    """ Run L1 compressed sensing given alpha and a basis."""
 
     sys.stdout.write("Running compressed sensing on this block.\n")
     sys.stdout.flush()
@@ -94,7 +83,7 @@ def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
     # Print problem status.
     sys.stdout.write("Problem status: " + str(problem.status) + "\n")
     sys.stdout.flush()
-
+"""
 
 if __name__ == "__main__":
 
@@ -108,10 +97,10 @@ if __name__ == "__main__":
     
     # Compress each block.
     print "Running CS on each block..."
-    basis, block_coefficients = basisCompressedSenseDCTL1(blocks,
-                                                          ALPHA,
-                                                          BASIS_OVERSAMPLING,
-                                                          NUM_PROCESSORS)
+    basis, block_coefficients = sketch.basisCompressedSenseDCTL1(blocks,
+                                                                 ALPHA,
+                                                                 BASIS_OVERSAMPLING,
+                                                                 NUM_PROCESSORS)
     
     # Compute reconstruction for each block.
     print "Reconstructing..."
