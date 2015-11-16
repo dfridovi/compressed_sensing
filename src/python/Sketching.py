@@ -27,26 +27,42 @@ def computeFourierBasis(N):
         basis[:, i] = basis_vector
 
     return np.asmatrix(basis)
-        
-def basisFourier(img, k):
+
+def blockFourierL0(block, k):
     """ Extract the 'k' Fourier basis vectors with the top projection coefficients. """
 
     # Unravel this image into a single column vector.
-    img_vector = img.ravel()
+    img_vector = np.asmatrix(block.ravel()).T
 
     # Compute the FFT.
     fourier = np.fft.fft(img_vector)
-    
+
     # Record the top 'k' coefficients.
     sorted_indices = np.argsort(-1.0 * np.absolute(fourier))
     coefficients = fourier
     coefficients[sorted_indices[k:]] = 0.0
     coefficients = np.asmatrix(coefficients).T
     
-    # Generate basis matrix for these indices.
-    basis = computeFourierBasis(len(coefficients))
+    return coefficients
+
+def basisFourierL0(blocks, k):
+    """ Run blockwise top 'k' Fourier compresssion."""
+
+    # Get block size.
+    block_len = blocks[0].shape[0] * blocks[0].shape[1]
     
-    return basis, coefficients
+    # Generate DCT basis and premultiply image.
+    fourier_basis = computeFourierBasis(block_len)
+    
+    # Make a special function given these parameters.
+    print "Creating a partial function."
+    blockFourier = partial(blockFourierL0, k=k)
+    
+    # Run compressed sensing on each block and store results.
+    print "Running CS on the pool."
+    block_coefficients = map(blockFourier, blocks)
+
+    return fourier_basis, block_coefficients
 
 def computeDCTBasis(N):
     """ Compute a DCT basis matrix in N dimensions. """
@@ -66,63 +82,41 @@ def computeDCTBasis(N):
 
     return np.asmatrix(basis)
         
-def basisDCT(img, k):
+def blockDCTL0(block, k):
     """ Extract the 'k' DCT basis vectors with the top projection coefficients. """
 
     # Unravel this image into a single column vector.
-    img_vector = img.ravel()
+    img_vector = np.asmatrix(block.ravel()).T
 
-    # Compute the FFT.
+    # Compute the DCT.
     dct = fftpack.dct(img_vector).astype(np.float32)
-    
+
     # Record the top 'k' coefficients.
-    sorted_indices = np.argsort(-1.0 * np.absolute(dct))
+    sorted_indices = np.argsort(-1.0 * np.absolute(fourier))
     coefficients = dct
     coefficients[sorted_indices[k:]] = 0.0
     coefficients = np.asmatrix(coefficients).T
     
-    # Generate basis matrix for these indices.
-    basis = computeDCTBasis(len(coefficients))
+    return coefficients
+
+def basisFourierL0(blocks, k):
+    """ Run blockwise top 'k' DCT compresssion."""
+
+    # Get block size.
+    block_len = blocks[0].shape[0] * blocks[0].shape[1]
     
-    return basis, coefficients
-
-def basisSketchL1(img, alpha, basis_oversampling=1.0):
-    """
-    Sketch the image. Procedure: 
-    1. Choose a random basis.
-    2. Solve the L1-penalized least-squares problem to obtain the representation.
+    # Generate DCT basis and premultiply image.
+    dct_basis = computeDCTBasis(block_len)
     
-    min_x ||x - A^+ y||_2^2 + alpha * ||x||_1 : y = image, 
-                                               x = representation, 
-                                               A = mixing basis (A^+ is pseudoinverse)
-    """
-
-    # Unravel this image into a single column vector.
-    img_vector = np.asmatrix(img.ravel()).T
+    # Make a special function given these parameters.
+    print "Creating a partial function."
+    blockDCT = partial(blockDCTL0, k=k)
     
-    # Generate a random basis.
-    basis = np.random.randn(len(img_vector),
-                            int(len(img_vector) * basis_oversampling))
-    basis_pinv = np.linalg.pinv(basis)
+    # Run compressed sensing on each block and store results.
+    print "Running CS on the pool."
+    block_coefficients = map(blockDCT, blocks)
 
-    # Pre-multiply image by basis pseudoinverse.
-    img_premultiplied = basis_pinv * img_vector
-
-    # Construct the problem.
-    coefficients = cvx.Variable(basis.shape[1])
-    L2 = cvx.sum_squares(coefficients - img_premultiplied)
-    L1 = cvx.norm(coefficients, 1)
-    objective = cvx.Minimize(L2 + alpha*L1)
-    constraints = []
-    problem = cvx.Problem(objective, constraints)
-
-    # Solve.
-    problem.solve(verbose=True, solver='SCS')
-
-    # Print problem status.
-    print "Problem status: " + str(problem.status)
-    
-    return basis, coefficients.value
+    return dct_basis, block_coefficients
 
 def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
     """ Run L1 compressed sensing given alpha and a basis."""
@@ -206,32 +200,25 @@ def basisCompressedSenseImgL1(img, alpha, basis_oversampling=1.0):
                                                    m = Ay
     """
 
-    # Unravel this image into a single column vector.
-    img_vector = np.asmatrix(img.ravel()).T
+    # Get block size.
+    block_len = blocks[0].shape[0] * blocks[0].shape[1]
     
     # Generate a random mixing matrix.
-    mixing_matrix = np.random.randn(int(len(img_vector) * basis_oversampling),
-        len(img_vector))
-
-
-    # Determine m (samples)
-    img_measured = mixing_matrix * img_vector
-
-    # Construct the problem.
-    coefficients = cvx.Variable(len(img_vector))
-    L2 = cvx.sum_squares(mixing_matrix*coefficients - img_measured)
-    L1 = cvx.norm(coefficients, 1)
-    objective = cvx.Minimize(L2 + alpha*L1)
-    constraints = []
-    problem = cvx.Problem(objective, constraints)
-
-    # Solve.
-    problem.solve(verbose=True, solver='SCS')
-
-    # Print problem status.
-    print "Problem status: " + str(problem.status)
+    mixing_matrix = np.random.randn(int(block_len * basis_oversampling),
+                                    block_len)
     
-    return np.identity(len(img_vector)), coefficients.value
+    # Make a special function given these parameters.
+    print "Creating a partial function."
+    blockCS = partial(blockCompressedSenseL1,
+                      alpha=alpha,
+                      basis_premultiplied=mixing_matrix,
+                      mixing_matrix=mixing_matrix)
+    
+    # Run compressed sensing on each block and store results.
+    print "Running CS on the pool."
+    block_coefficients = map(blockCS, blocks)
+
+    return np.identity(len(img_vector)), block_coefficients
 
 def getBlocks(img, k):
     """ Break the image up into kxk blocks. Crop if necessary."""
