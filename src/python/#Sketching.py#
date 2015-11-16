@@ -124,9 +124,9 @@ def basisSketchL1(img, alpha, basis_oversampling=1.0):
     
     return basis, coefficients.value
 
-
+"""
 def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
-    """ Run L1 compressed sensing given alpha and a basis."""
+     Run L1 compressed sensing given alpha and a basis.
 
     # Unravel this image into a single column vector.
     img_vector = np.asmatrix(block.ravel()).T
@@ -149,7 +149,7 @@ def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
     # Print problem status.
     print "Problem status: " + str(problem.status)
     sys.stdout.flush()
-
+"""
 """
 def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0, num_processors=4):
 
