@@ -10,6 +10,8 @@ import numpy as np
 from scipy import fftpack
 import cvxpy as cvx
 
+import BasicFunctions as bf
+
 def computeFourierBasis(N):
     """ Compute a Fourier basis matrix in N dimensions. """
 
@@ -219,6 +221,40 @@ def basisCompressedSenseImgL1(img, alpha, basis_oversampling=1.0):
     block_coefficients = map(blockCS, blocks)
 
     return np.identity(len(img_vector)), block_coefficients
+
+def computeSparsity(block_coefficients):
+    """ Compute total sparsity given the list of block-wise coefficients."""
+
+    # Get block size.
+    size = len(block_coefficients[0])
+    
+    # Running list of sparsity coefficients.
+    sparsity = []
+    for coefficients in block_coefficients:
+        max_value = np.absolute(coefficients).max() 
+        sparsity.append(100.0-(((np.absolute(coefficients) > 0.01*max_value).sum())*100.0 /
+                                      size))
+
+    return sparsity
+        
+def visualizeBlockwiseSparsity(blocks, sparsity, original_shape):
+    """ Visualize blockwise sparsity."""
+
+    blocks = np.array(blocks)
+    sparsity = np.array(sparsity)
+    new_image = np.zeros(original_shape)
+    k = blocks[0].shape[0]
+    n_vert = original_shape[0] / k
+    n_horiz = original_shape[1] / k
+
+    # Iterate through the image and append to 'blocks.'
+    for i in range(n_vert):
+        for j in range(n_horiz):
+            new_image[i*k:(i+1)*k, j*k:(j+1)*k] = bf.adjustExposure(blocks[n_horiz*i + j],
+                                                                    1.0 - 0.01*sparsity[n_horiz*i + j])
+
+    return new_image
+
 
 def getBlocks(img, k):
     """ Break the image up into kxk blocks. Crop if necessary."""
