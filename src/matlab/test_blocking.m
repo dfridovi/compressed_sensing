@@ -9,6 +9,7 @@ ALPHA = 1.0;
 BASIS_OVERSAMPLING = 1.0;
 OVERLAP_PERCENT = .4;
 
+
 img = imread([IMAGE_PATH IMAGE_NAME]);
 img = rgb2gray(img);
 

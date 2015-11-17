@@ -2,7 +2,7 @@ function coefficients = blockFourierL0(block, k)
     % Extract the 'k' Fourier basis vectors withthe top projection
     % coefficients.
     
-    M, N = size(block);
+    [M, N] = size(block);
     
     % Unravel the block into a single column vector.
     block_vector = reshape(block, M * N, 1);
