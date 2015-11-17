@@ -8,10 +8,102 @@ import sys
 
 import numpy as np
 from scipy import fftpack
+
+import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.expressions.constants.parameter import Parameter
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.atoms.elementwise.abs import abs
+
 import cvxpy as cvx
+
 
 import BasicFunctions as bf
 
+class reversed_huber(cvx.atoms.elementwise.elementwise.Elementwise): 
+    def __init__(self, x):
+        super(reversed_huber, self).__init__(x)
+
+    @cvx.atoms.elementwise.elementwise.Elementwise.numpy_numeric
+    def reversedHuber(self, values):
+        x = values[0]
+        output = np.zeros(x.shape)
+        for row in range(x.shape[0]):
+            for col in range(x.shape[1]):
+                if np.abs(x[row, col]) <= 1.0:
+                    output[row, col] = np.abs(x[row, col])
+                else:
+                    output[row, col] = 0.5 * (np.abs(x[row, col]) *
+                                              np.abs(x[row, col]) + 1.0)
+
+        return output
+
+    def sign_from_args(self):
+        """Always positive.
+        """
+        return u.Sign.POSITIVE
+    
+    def func_curvature(self):
+        """Default curvature.
+        """
+        return u.Curvature.CONVEX
+
+    def monotonicity(self):
+        """Increasing for positive arg, decreasing for negative.
+        """
+        return [u.monotonicity.SIGNED]
+
+    def get_data(self):
+        """Returns the parameter M.
+        """
+        return [None]
+
+    def validate_arguments(self):
+        """Checks that M >= 0 and is constant.
+        """
+        return
+    
+    @staticmethod
+    def graph_implementation(arg_objs, size, data=None):
+        """Reduces the atom to an affine expression and list of constraints.
+
+        minimize 0.5 * (z + x*x / z)
+        subject to 0 <= z <= 1
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        size : tuple
+            The size of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        x = arg_objs[0]
+        z = lu.create_var(size)
+        two = lu.create_const(2, (1, 1))
+        if isinstance(M, Parameter):
+            M = lu.create_param(M, (1, 1))
+        else: # M is constant.
+            M = lu.create_const(M.value, (1, 1))
+
+        # n**2 + 2*M*|s|
+        n2, constr_sq = power.graph_implementation([n], size, (2, (Fraction(1, 2), Fraction(1, 2))))
+        abs_s, constr_abs = abs.graph_implementation([s], size)
+        M_abs_s = lu.mul_expr(M, abs_s, size)
+        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, size)])
+        # x == s + n
+        constraints = constr_sq + constr_abs
+        constraints.append(lu.create_eq(x, lu.sum_expr([n, s])))
+        return (obj, constraints)
+
+
+        
 def computeFourierBasis(N):
     """ Compute a Fourier basis matrix in N dimensions. """
 
@@ -120,7 +212,7 @@ def basisFourierL0(blocks, k):
 
     return dct_basis, block_coefficients
 
-def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
+def blockCompressedSenseL1(block, rho, alpha, basis_premultiplied, mixing_matrix):
     """ Run L1 compressed sensing given alpha and a basis."""
 
     # Get block size.
@@ -136,8 +228,9 @@ def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
     coefficients = cvx.Variable(block_len)
     coefficients_premultiplied = basis_premultiplied * coefficients
     L2 = cvx.sum_squares(coefficients_premultiplied - img_measured)
+    REG = cvx.sum_squares(coefficients)
     L1 = cvx.norm(coefficients, 1)
-    objective = cvx.Minimize(L2 + alpha*L1)
+    objective = cvx.Minimize(L2 + rho*REG + alpha*L1)
     constraints = []
     problem = cvx.Problem(objective, constraints)
     
@@ -150,17 +243,17 @@ def blockCompressedSenseL1(block, alpha, basis_premultiplied, mixing_matrix):
 
     return coefficients.value
 
-def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0):
+def basisCompressedSenseDCTL1(blocks, rho, alpha, basis_oversampling=1.0):
     """
     Sketch the image blocks in the DCT domain. Procedure: 
     1. Choose a random matrix to mix the DCT components.
     2. Solve the L1-penalized least-squares problem to obtain the representation.
     
-    min_x ||AFx - m||_2^2 + alpha * ||x||_1, where y = image, 
-                                                   x = representation, 
-                                                   A = mixing matrix,
-                                                   F = DCT basis
-                                                   m = Ay
+    min_x ||AFx - m||_2^2 + rho * ||x||_2^2 + alpha * ||x||_1, where y = image, 
+                                                                     x = representation, 
+                                                                     A = mixing matrix,
+                                                                     F = DCT basis
+                                                                     m = Ay
     """
 
     # Get block size.
@@ -179,6 +272,7 @@ def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0):
     # Make a special function given these parameters.
     print "Creating a partial function."
     blockCS = partial(blockCompressedSenseL1,
+                      rho=rho,
                       alpha=alpha,
                       basis_premultiplied=basis_premultiplied,
                       mixing_matrix=mixing_matrix)
@@ -189,17 +283,88 @@ def basisCompressedSenseDCTL1(blocks, alpha, basis_oversampling=1.0):
 
     return dct_basis, block_coefficients
 
-def basisCompressedSenseImgL1(img, alpha, basis_oversampling=1.0):
+def blockCompressedSenseHuber(block, rho, alpha, basis_premultiplied, mixing_matrix):
+    """ Run reversed Huber compressed sensing given alpha and a basis."""
+
+    # Get block size.
+    block_len = block.shape[0] * block.shape[1]
+    
+    # Unravel this image into a single column vector.
+    img_vector = np.asmatrix(block.ravel()).T
+    
+    # Determine m (samples)
+    img_measured = mixing_matrix * img_vector
+    
+    # Construct the problem.
+    coefficients = cvx.Variable(block_len)
+    coefficients_premultiplied = basis_premultiplied * coefficients
+
+    huber_penalty = reversed_huber(rho * coefficients / np.sqrt(alpha))
+
+    L2 = cvx.sum_squares(coefficients_premultiplied - img_measured)
+    RH = cvx.sum_entries(huber_penalty)
+    objective = cvx.Minimize(L2 + 2*alpha*RH)
+    constraints = []
+    problem = cvx.Problem(objective, constraints)
+    
+    # Solve.
+    problem.solve(verbose=False, solver='SCS')
+    
+    # Print problem status.
+    print "Problem status: " + str(problem.status)
+    sys.stdout.flush()
+
+    return coefficients.value
+
+def basisCompressedSenseDCTHuber(blocks, rho, alpha, basis_oversampling=1.0):
     """
-    Sketch the image in the image domain. Procedure: 
+    Sketch the image blocks in the DCT domain. Procedure: 
     1. Choose a random matrix to mix the DCT components.
     2. Solve the L1-penalized least-squares problem to obtain the representation.
     
-    min_x ||Ax - m||_2^2 + alpha * ||x||_1, where y = image, 
-                                                   x = representation, 
-                                                   A = mixing matrix,
-                                                   F = DCT basis (not applicable)
-                                                   m = Ay
+    min_x ||AFx - m||_2^2 + rho * 2 * alpha * B(rho * x / sqrt(alpha)), where y = image, 
+                                                                     x = representation, 
+                                                                     A = mixing matrix,
+                                                                     F = DCT basis
+                                                                     m = Ay
+    B = reversed Huber function
+    """
+
+    # Get block size.
+    block_len = blocks[0].shape[0] * blocks[0].shape[1]
+    
+    # Generate a random mixing matrix.
+    mixing_matrix = np.random.randn(int(block_len * basis_oversampling),
+                                    block_len)
+    
+    # Generate DCT basis and premultiply image.
+    dct_basis = computeDCTBasis(block_len)
+    
+    # Pre-multiply image by basis mixing matrix (AF)
+    basis_premultiplied = mixing_matrix * dct_basis.T
+
+    # Make a special function given these parameters.
+    blockHuber = partial(blockCompressedSenseHuber,
+                         rho=rho,
+                         alpha=alpha,
+                         basis_premultiplied=basis_premultiplied,
+                         mixing_matrix=mixing_matrix)
+    
+    # Run compressed sensing on each block and store results.
+    block_coefficients = map(blockHuber, blocks)
+
+    return dct_basis, block_coefficients
+
+def basisCompressedSenseImgL1(img, rho, alpha, basis_oversampling=1.0):
+    """
+    Sketch the image in the image domain. Procedure: 
+    1. Choose a random matrix to mix the image domain basis components.
+    2. Solve the L1-penalized least-squares problem to obtain the representation.
+    
+    min_x ||Ax - m||_2^2 + rho * ||x||_2^2 + alpha * ||x||_1, where y = image, 
+                                                                    x = representation, 
+                                                                    A = mixing matrix,
+                                                                    m = Ay
     """
 
     # Get block size.
@@ -210,14 +375,13 @@ def basisCompressedSenseImgL1(img, alpha, basis_oversampling=1.0):
                                     block_len)
     
     # Make a special function given these parameters.
-    print "Creating a partial function."
     blockCS = partial(blockCompressedSenseL1,
+                      rho=rho,
                       alpha=alpha,
                       basis_premultiplied=mixing_matrix,
                       mixing_matrix=mixing_matrix)
     
     # Run compressed sensing on each block and store results.
-    print "Running CS on the pool."
     block_coefficients = map(blockCS, blocks)
 
     return np.identity(len(img_vector)), block_coefficients

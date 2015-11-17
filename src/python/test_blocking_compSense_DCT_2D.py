@@ -17,6 +17,7 @@ import cvxpy as cvx
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
 BLOCK_SIZE = 30
+RHO = 1.0
 ALPHA = 1.0
 BASIS_OVERSAMPLING = 1.0
 
