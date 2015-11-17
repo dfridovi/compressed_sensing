@@ -28,7 +28,7 @@ function [ new_image ] = assembleBlocks( blocks, k, original_shape, overlap_perc
         end
     end
 
-    new_image = new_image(overlap:(overlap + original_shape(1)),...
-        overlap:(overlap+original_shape(2)));
+    new_image = new_image(overlap+1:(overlap + original_shape(1)),...
+        overlap+1:(overlap+original_shape(2)));
 end
 
