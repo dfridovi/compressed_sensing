@@ -1,4 +1,5 @@
-function coefficients = blockCompressedSenseL1(block, rho, alpha, basis, mixing)
+function coefficients = ...
+    blockCompressedSenseL1(block, rho, alpha, basis, mixing)
     % Return L1 compressed sensing result given rho, alpha, 
     % basis, and mixing.
     
