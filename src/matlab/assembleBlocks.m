@@ -11,12 +11,13 @@ function [ new_image ] = assembleBlocks( blocks, k, original_shape, overlap_perc
 
     % block mask for alpha blending
     block_mask = ones(size(blocks(:,:,1)));
-    for i = 1:overlap
+    for i = 1:overlap*2
         block_mask(:,i) = block_mask(:,i)*(1.0/(overlap+1))*(i);
         block_mask(:,end-(i-1)) = block_mask(:,i);
         block_mask(i,:) = block_mask(i,:)*(1.0/(overlap+1))*(i);
         block_mask(end-(i-1),:) = block_mask(i,:);
     end
+    
 
     % Iterate through the image and append to 'blocks.'
     for i = 0:n_vert-1
