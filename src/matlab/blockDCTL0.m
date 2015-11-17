@@ -1,4 +1,4 @@
-function coefficients = blockFourierL0(block, k)
+function coefficients = blockDCTL0(block, k)
     % Extract the 'k' Fourier basis vectors withthe top projection
     % coefficients.
     
@@ -8,10 +8,10 @@ function coefficients = blockFourierL0(block, k)
     block_vector = reshape(block, M * N, 1);
     
     % Compute the FFT.
-    fourier_coefficients = fft(block_vector);
+    dct_coefficients = dct(block_vector);
     
     % Record the top 'k' coefficients.
-    [sorted, indices] = sort(fourier_coefficients, 'descend');
-    coefficients = fourier_coefficients;
+    [sorted, indices] = sort(dct_coefficients, 'descend');
+    coefficients = dct_coefficients;
     coefficients(indices(k:end)) = 0;
 end
