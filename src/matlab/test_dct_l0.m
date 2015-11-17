@@ -23,10 +23,10 @@ for i = 1:3
    blocks = getBlocks(img, BLOCK_SIZE, OVERLAP_PERCENT);
    
    [M, N, B] = size(blocks);
-   [fourier_basis, block_coefficients] = compressFourierL0(blocks, k);
-   reconstructed_blocks = reconstructBlocks(fourier_basis, block_coefficients, ...
+   [dct_basis, block_coefficients] = compressDCTL0(blocks, k);
+   reconstructed_blocks = reconstructBlocks(dct_basis, block_coefficients, ...
                                             M, N);
-   reconstruction = assembleBlocks(real(reconstructed_blocks), BLOCK_SIZE, ...
+   reconstruction = assembleBlocks(reconstructed_blocks, BLOCK_SIZE, ...
                                    IMAGE_SIZE, OVERLAP_PERCENT);
 
     % Display.

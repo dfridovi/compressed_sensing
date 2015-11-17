@@ -11,7 +11,7 @@ function [dct_basis, block_coefficients] = ...
 %            A = mixing matrix,
 %            F = DCT basis
 
-    M, N, B = size(blocks); % blocks is a 3D array
+    [M, N, B] = size(blocks); % blocks is a 3D array
     
     % Generate a mixing matrix.
     mixing = randn(round(M * N * basis_oversampling), M * N);

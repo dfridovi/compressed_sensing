@@ -3,7 +3,7 @@ function coefficients = ...
     % Return L1 compressed sensing result given rho, alpha, 
     % basis, and mixing.
     
-    M, N = size(block);
+    [M, N] = size(block);
     
     % Unravel the block into a single column vector.
     block_vector = reshape(block, M * N, 1);
@@ -14,8 +14,8 @@ function coefficients = ...
     % Construct the problem and solve.
     cvx_begin
     variable coefficients(M * N)
-    minimize(sum_squares(basis * coefficients - block_measured) + ... 
-             rho * sum_squares(coefficients) + ...
-             alpha * norm(coefficients, 1))
+    minimize( sum_square( basis * coefficients - block_measured ) + ... 
+              rho * sum_square( coefficients ) + ...
+              alpha * norm( coefficients, 1 ) )
     cvx_end
 end
