@@ -16,17 +16,18 @@ import cvxpy as cvx
 # Parameters.
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
-BLOCK_SIZE = 30
+BLOCK_SIZE = 20
 ALPHA = 1.0
 BASIS_OVERSAMPLING = 1.0
+OVERLAP_PERCENT = 0.5;
 
 if __name__ == "__main__":
 
     # Import the image.
-    img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)), (60, 60)).astype(np.float32)
+    img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)), (80, 80)).astype(np.float32)
     
     # Get blocks.
-    blocks = sketch.getBlocks(img, BLOCK_SIZE)
+    blocks = sketch.getBlocks_withOverlap(img, BLOCK_SIZE, OVERLAP_PERCENT)
     print "Got %d blocks." % len(blocks)
     
     
@@ -41,11 +42,12 @@ if __name__ == "__main__":
     reconstructed_blocks = []
     for i, coefficients in enumerate(block_coefficients):
         print "Progress: %d / %d" % (i, len(block_coefficients))    
-        reconstructed_blocks.append((basis * coefficients).reshape((BLOCK_SIZE,
-                                                                    BLOCK_SIZE)))
+        reconstructed_blocks.append((basis * coefficients).reshape((blocks[0].shape[0],
+                                                                    blocks[0].shape[1])))
         
     # Reassemble.
-    reconstruction = sketch.assembleBlocks(reconstructed_blocks, img.shape)
+    reconstruction = sketch.assembleBlocks_withOverlap(reconstructed_blocks, 
+                                                        BLOCK_SIZE, img.shape, OVERLAP_PERCENT)
     
     # print estimate of sparsity
     #print np.median(np.asarray(coefficients.T))
