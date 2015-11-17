@@ -7,7 +7,7 @@ IMAGE_NAME = 'lenna.png';
 BLOCK_SIZE = 10;
 ALPHA = 1.0;
 BASIS_OVERSAMPLING = 1.0;
-OVERLAP_PERCENT = .5;
+OVERLAP_PERCENT = .1;
 
 img = imread([IMAGE_PATH IMAGE_NAME]);
 img = rgb2gray(img);
