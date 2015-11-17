@@ -1,4 +1,4 @@
 To do list:
 * Try LASSO on vanilla DCT (e.g. replace "top k" with sparse LASSO solution -- we expect this to give a worse result)
-* Re-write sketching stuff to be blockwise on the entire image (expect better compression ratios)
-* Build in oversampling with a random measurement matrix A. Apply this in image domain and DCT domain.
+* Blending
+* Huber norm stuff
