@@ -7,11 +7,11 @@ function [ blocks ] = getBlocks( img, k, overlap_percent )
         error('Image is not grayscale. Returning empty block list.')
     end
     
-    overlap = int(k*overlap_percent);
+    overlap = round(k*overlap_percent);
 
     
-    n_vert = int(size(img,1) / k);
-    n_horiz = int(size(img,2) / k);
+    n_vert = floor(size(img,1) / k);
+    n_horiz = floor(size(img,2) / k);
     
     blocks = zeros(k+2*overlap, k+2*overlap, n_vert*n_horiz);
 
@@ -21,8 +21,8 @@ function [ blocks ] = getBlocks( img, k, overlap_percent )
     % Iterate through the image and append to 'blocks.'
     for i = 0:n_vert-1
         for j = 0:n_horiz-1
-            blocks(:,:,n_horiz*i+j+1) = padded_img(i*k+1:((i+1)*k+2*overlap)+1,...
-                j*k+1:((j+1)*k+2*overlap)+1);
+            blocks(:,:,n_horiz*i+j+1) = padded_img(i*k+1:((i+1)*k+2*overlap),...
+                j*k+1:((j+1)*k+2*overlap));
         end
     end
 
