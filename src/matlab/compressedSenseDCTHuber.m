@@ -12,7 +12,7 @@ function [dct_basis, block_coefficients] = ...
 %            F = DCT basis
 %            B = reversed Huber function
 
-    M, N, B = size(blocks); % blocks is a 3D array
+    [M, N, B] = size(blocks); % blocks is a 3D array
     
     % Generate a mixing matrix.
     mixing = randn(round(M * N * basis_oversampling), M * N);

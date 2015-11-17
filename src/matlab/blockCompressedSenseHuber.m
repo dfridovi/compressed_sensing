@@ -3,7 +3,7 @@ function coefficients = ...
     % Return reversed Huber compressed sensing result given rho, 
     % alpha, basis, and mixing.
     
-    M, N = size(block);
+    [M, N] = size(block);
     
     % Unravel the block into a single column vector.
     block_vector = reshape(block, M * N, 1);
