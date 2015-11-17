@@ -1,5 +1,5 @@
 """
-Test script. Run compressed sensing on a 2D image in DCT domain with blocking.
+Test script. Run Huber compressed sensing on a 2D image in DCT domain with blocking.
 """
 
 import numpy as np
@@ -16,25 +16,25 @@ import cvxpy as cvx
 # Parameters.
 IMAGE_PATH = "../../data/"
 IMAGE_NAME = "lenna.png"
-BLOCK_SIZE = 10
+BLOCK_SIZE = 30
+RHO = 1.0
 ALPHA = 1.0
 BASIS_OVERSAMPLING = 1.0
-OVERLAP_PERCENT = 0.5;
 
 if __name__ == "__main__":
 
     # Import the image.
-    img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)), (40, 40)).astype(np.float32)
-
+    img = misc.imresize(bf.rgb2gray(bf.imread(IMAGE_PATH + IMAGE_NAME)),
+                        (60, 60)).astype(np.float32)
     
     # Get blocks.
-    blocks = sketch.getBlocks_withOverlap(img, BLOCK_SIZE, OVERLAP_PERCENT)
+    blocks = sketch.getBlocks(img, BLOCK_SIZE)
     print "Got %d blocks." % len(blocks)
     
     
     # Compress each block.
     print "Running CS on each block..."
-    basis, block_coefficients = sketch.basisCompressedSenseDCTL1(blocks,
+    basis, block_coefficients = sketch.basisCompressedSenseDCTHuber(blocks,
                                                                  ALPHA,
                                                                  BASIS_OVERSAMPLING)
 
@@ -47,19 +47,14 @@ if __name__ == "__main__":
     reconstructed_blocks = []
     for i, coefficients in enumerate(block_coefficients):
         print "Progress: %d / %d" % (i, len(block_coefficients))    
-        reconstructed_blocks.append((basis * coefficients).reshape((blocks[0].shape[0],
-                                                                    blocks[0].shape[1])))
-        
+        reconstructed_blocks.append(bf.rescale((basis *
+                                                coefficients).reshape((BLOCK_SIZE,
+                                                                       BLOCK_SIZE))))
     # Reassemble.
-    reconstruction = sketch.assembleBlocks_withOverlap(reconstructed_blocks, 
-                                                        BLOCK_SIZE, img.shape, OVERLAP_PERCENT)
-
-    # Note this may not work because the reconstructed_blocks are bigger than expected
-    # because of the overlap
+    reconstruction = sketch.assembleBlocks(reconstructed_blocks, img.shape)
     visualization = sketch.visualizeBlockwiseSparsity(reconstructed_blocks,
                                                       sparsity,
                                                       img.shape)
-
     
     # print estimate of sparsity
     #print np.median(np.asarray(coefficients.T))

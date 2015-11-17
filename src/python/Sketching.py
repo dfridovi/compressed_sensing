@@ -455,3 +455,70 @@ def assembleBlocks(blocks, original_shape):
             new_image[i*k:(i+1)*k, j*k:(j+1)*k] = blocks[n_horiz*i + j]
 
     return new_image
+
+def getBlocks_withOverlap(img, k, overlap_percent = 0.1):
+    """ Break the image up into kxk blocks. Crop if necessary."""
+
+    # Throw an error if not grayscale.
+    if len(img.shape) != 2:
+        print "Image is not grayscale. Returning empty block list."
+        return []
+    
+    blocks = []
+    overlap = int(k*overlap_percent)
+    n_vert = img.shape[0] / k
+    n_horiz = img.shape[1] / k
+
+    # Pad image, check new shape
+    padded_img = np.pad(img, overlap, mode = 'edge')
+    print 'old shape: %d, %d' % (img.shape[0], img.shape[1])
+    print 'new shape: %d, %d' % (padded_img.shape[0], padded_img.shape[1])
+
+    # Iterate through the image and append to 'blocks.'
+    for i in range(n_vert):
+        for j in range(n_horiz):
+            blocks.append(padded_img[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)])
+
+    return blocks
+
+def assembleBlocks_withOverlap(blocks, k, original_shape, overlap_percent = 0.1):
+    """ Reassemble the image from a list of blocks."""
+
+    overlap = int(k*overlap_percent)
+    blocks = np.array(blocks)
+    new_image = np.zeros((original_shape[0]+2*overlap, original_shape[1]+2*overlap))
+    # for average
+    # new_img_mask = np.zeros((original_shape[0]+2*overlap, original_shape[1]+2*overlap))
+   
+    #k = blocks[0].shape[0] - 2*overlap;
+    n_vert = original_shape[0] / k
+    n_horiz = original_shape[1] / k
+
+    # block mask for alpha blending
+    block_mask = np.ones(blocks[0].shape)
+    for i in range(overlap):
+        block_mask[:,i] = block_mask[:,-(i+1)] = block_mask[:,i]*(1.0/(overlap+1))*(i+1)
+        block_mask[i,:] = block_mask[-(i+1),:] = block_mask[i,:]*(1.0/(overlap+1))*(i+1)
+   
+
+   
+
+
+    # Iterate through the image and append to 'blocks.'
+    for i in range(n_vert):
+        for j in range(n_horiz):
+            # Averaging
+            #cropped_block = blocks[n_horiz*i + j, overlap:overlap+k, overlap:overlap+k ]
+            #new_image[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] = blocks[n_horiz*i]
+            #new_image_mask[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] = new_img_mask[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] + 1
+
+            # Alpha Blending - multiply each block by block mask and add to image
+            new_image[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] = ((blocks[n_horiz*i+j]*
+                block_mask)+new_image[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)])
+
+
+    # for Averaging
+    #new_image = new_image / new_image_mask
+    new_image = new_image[overlap:(overlap + original_shape[0]), overlap:(overlap+original_shape[1])]
+
+    return new_image
