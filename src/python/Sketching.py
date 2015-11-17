@@ -2,142 +2,17 @@
 A set of functions for sketching (i.e. randomly compressing to low-rank) an image.
 """
 
-from multiprocessing import Pool
 from functools import partial
 import sys
 
 import numpy as np
 from scipy import fftpack
 
-import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.expressions.constants.parameter import Parameter
-from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.atoms.elementwise.abs import abs
-
-from cvxpy.atoms.elementwise.power import power
-from fractions import Fraction
-
 import cvxpy as cvx
 
 
 import BasicFunctions as bf
 
-class reversed_huber(cvx.atoms.elementwise.elementwise.Elementwise): 
-    def __init__(self, x):
-        super(reversed_huber, self).__init__(x)
-
-    @cvx.atoms.elementwise.elementwise.Elementwise.numpy_numeric
-    def reversedHuber(self, values):
-        x = values[0]
-        output = np.zeros(x.shape)
-        for row in range(x.shape[0]):
-            for col in range(x.shape[1]):
-                if np.abs(x[row, col]) <= 1.0:
-                    output[row, col] = np.abs(x[row, col])
-                else:
-                    output[row, col] = 0.5 * (np.abs(x[row, col]) *
-                                              np.abs(x[row, col]) + 1.0)
-
-        return output
-
-    def sign_from_args(self):
-        """Always positive.
-        """
-        return u.Sign.POSITIVE
-    
-    def func_curvature(self):
-        """Default curvature.
-        """
-        return u.Curvature.CONVEX
-
-    def monotonicity(self):
-        """Increasing for positive arg, decreasing for negative.
-        """
-        return [u.monotonicity.SIGNED]
-
-    def get_data(self):
-        """Returns the parameter M.
-        """
-        return [None]
-
-    def validate_arguments(self):
-        """Checks that M >= 0 and is constant.
-        """
-        return
-    
-    @staticmethod
-    def graph_implementation(arg_objs, size, data=None):
-        """Reduces the atom to an affine expression and list of constraints.
-
-        minimize 0.5 * (z + x*x / z)
-        subject to 0 <= z <= 1
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        size : tuple
-            The size of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-
-        M = lu.create_const(1, (1, 1))
-        x = arg_objs[0]
-        z = lu.create_var((1, 1))
-        t = lu.create_var((1, 1))
-        one = lu.create_const(1, (1, 1))
-        two = lu.create_const(2, (1, 1))
-        
-        # n**2 + 2*M*|s|
-        z_sqrt, constr_sqrt = power.graph_implementation([z], (1, 1),
-                                                         (Fraction(1, 2), (Fraction(1, 2), Fraction(1, 2))))
-        t_sq, constr_sq = power.graph_implementation([t], (1, 1),
-                                                     (2, (Fraction(1, 2), Fraction(1, 2))))
-        obj = lu.sum_expr([z, t_sq])
-
-        # x == s + n
-        constraints = constr_sq + constr_sqrt
-        constraints.append(lu.create_geq(z, one))
-        constraints.append(lu.create_eq(t, lu.mul_expr(x, z_sqrt, (1, 1))))
-
-
-#        x2, constr_sq = power.graph_implementation([x], size, (2, (Fraction(1, 2), Fraction(1, 2))))
-#        zinv, constr_inv = power.graph_implementation([z], size, (-1, (Fraction(1, 2), Fraction(1, 2))))
-#        x2_div_z = lu.mul_expr(x2, zinv, size)
-#        obj = lu.sum_expr([x2, lu.mul_expr(x2, z, size)])
-        # x == s + n
-#        constraints = constr_sq + constr_inv
-#        constraints.append(lu.create_eq(x, lu.sum_expr([z, z])))
-        return (obj, constraints)
-
-"""
-        x = arg_objs[0]
-        z = lu.create_var(size)
-        half = lu.create_const(1, (1, 1))
-        one = lu.create_const(1, (1, 1))
-        zero = lu.create_const(0, (1, 1))
-
-        # 0.5 * (z + x*x / z)
-        x2 = lu.mul_expr(x, x, size)
-        x2_div_z = lu.div_expr(x, z)
-        parens = lu.sum_expr([z, x2_div_z])
-        obj = lu.mul_expr(half, parens, size)
-
-        # 0 <= z <= 1
-        constraints = []
-#        constraints.append(lu.create_geq(z, zero))
-#        constraints.append(lu.create_leq(z, one))
-        return (obj, constraints)
-"""
-
-        
 def computeFourierBasis(N):
     """ Compute a Fourier basis matrix in N dimensions. """
 
