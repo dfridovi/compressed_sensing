@@ -35,8 +35,9 @@ if __name__ == "__main__":
     # Compress each block.
     print "Running CS on each block..."
     basis, block_coefficients = sketch.basisCompressedSenseDCTHuber(blocks,
-                                                                 ALPHA,
-                                                                 BASIS_OVERSAMPLING)
+                                                                    RHO,
+                                                                    ALPHA,
+                                                                    BASIS_OVERSAMPLING)
 
     # Get sparsity.
     sparsity = sketch.computeSparsity(block_coefficients)

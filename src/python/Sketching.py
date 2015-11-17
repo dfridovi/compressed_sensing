@@ -15,6 +15,9 @@ from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.atoms.elementwise.abs import abs
 
+from cvxpy.atoms.elementwise.power import power
+from fractions import Fraction
+
 import cvxpy as cvx
 
 
@@ -84,24 +87,55 @@ class reversed_huber(cvx.atoms.elementwise.elementwise.Elementwise):
         tuple
             (LinOp for objective, list of constraints)
         """
-        x = arg_objs[0]
-        z = lu.create_var(size)
-        two = lu.create_const(2, (1, 1))
-        if isinstance(M, Parameter):
-            M = lu.create_param(M, (1, 1))
-        else: # M is constant.
-            M = lu.create_const(M.value, (1, 1))
 
+        M = lu.create_const(1, (1, 1))
+        x = arg_objs[0]
+        z = lu.create_var((1, 1))
+        t = lu.create_var((1, 1))
+        one = lu.create_const(1, (1, 1))
+        two = lu.create_const(2, (1, 1))
+        
         # n**2 + 2*M*|s|
-        n2, constr_sq = power.graph_implementation([n], size, (2, (Fraction(1, 2), Fraction(1, 2))))
-        abs_s, constr_abs = abs.graph_implementation([s], size)
-        M_abs_s = lu.mul_expr(M, abs_s, size)
-        obj = lu.sum_expr([n2, lu.mul_expr(two, M_abs_s, size)])
+        z_sqrt, constr_sqrt = power.graph_implementation([z], (1, 1),
+                                                         (Fraction(1, 2), (Fraction(1, 2), Fraction(1, 2))))
+        t_sq, constr_sq = power.graph_implementation([t], (1, 1),
+                                                     (2, (Fraction(1, 2), Fraction(1, 2))))
+        obj = lu.sum_expr([z, t_sq])
+
         # x == s + n
-        constraints = constr_sq + constr_abs
-        constraints.append(lu.create_eq(x, lu.sum_expr([n, s])))
+        constraints = constr_sq + constr_sqrt
+        constraints.append(lu.create_geq(z, one))
+        constraints.append(lu.create_eq(t, lu.mul_expr(x, z_sqrt, (1, 1))))
+
+
+#        x2, constr_sq = power.graph_implementation([x], size, (2, (Fraction(1, 2), Fraction(1, 2))))
+#        zinv, constr_inv = power.graph_implementation([z], size, (-1, (Fraction(1, 2), Fraction(1, 2))))
+#        x2_div_z = lu.mul_expr(x2, zinv, size)
+#        obj = lu.sum_expr([x2, lu.mul_expr(x2, z, size)])
+        # x == s + n
+#        constraints = constr_sq + constr_inv
+#        constraints.append(lu.create_eq(x, lu.sum_expr([z, z])))
         return (obj, constraints)
 
+"""
+        x = arg_objs[0]
+        z = lu.create_var(size)
+        half = lu.create_const(1, (1, 1))
+        one = lu.create_const(1, (1, 1))
+        zero = lu.create_const(0, (1, 1))
+
+        # 0.5 * (z + x*x / z)
+        x2 = lu.mul_expr(x, x, size)
+        x2_div_z = lu.div_expr(x, z)
+        parens = lu.sum_expr([z, x2_div_z])
+        obj = lu.mul_expr(half, parens, size)
+
+        # 0 <= z <= 1
+        constraints = []
+#        constraints.append(lu.create_geq(z, zero))
+#        constraints.append(lu.create_leq(z, one))
+        return (obj, constraints)
+"""
 
         
 def computeFourierBasis(N):
@@ -453,72 +487,5 @@ def assembleBlocks(blocks, original_shape):
     for i in range(n_vert):
         for j in range(n_horiz):
             new_image[i*k:(i+1)*k, j*k:(j+1)*k] = blocks[n_horiz*i + j]
-
-    return new_image
-
-def getBlocks_withOverlap(img, k, overlap_percent = 0.1):
-    """ Break the image up into kxk blocks. Crop if necessary."""
-
-    # Throw an error if not grayscale.
-    if len(img.shape) != 2:
-        print "Image is not grayscale. Returning empty block list."
-        return []
-    
-    blocks = []
-    overlap = int(k*overlap_percent)
-    n_vert = img.shape[0] / k
-    n_horiz = img.shape[1] / k
-
-    # Pad image, check new shape
-    padded_img = np.pad(img, overlap, mode = 'edge')
-    print 'old shape: %d, %d' % (img.shape[0], img.shape[1])
-    print 'new shape: %d, %d' % (padded_img.shape[0], padded_img.shape[1])
-
-    # Iterate through the image and append to 'blocks.'
-    for i in range(n_vert):
-        for j in range(n_horiz):
-            blocks.append(padded_img[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)])
-
-    return blocks
-
-def assembleBlocks_withOverlap(blocks, k, original_shape, overlap_percent = 0.1):
-    """ Reassemble the image from a list of blocks."""
-
-    overlap = int(k*overlap_percent)
-    blocks = np.array(blocks)
-    new_image = np.zeros((original_shape[0]+2*overlap, original_shape[1]+2*overlap))
-    # for average
-    # new_img_mask = np.zeros((original_shape[0]+2*overlap, original_shape[1]+2*overlap))
-   
-    #k = blocks[0].shape[0] - 2*overlap;
-    n_vert = original_shape[0] / k
-    n_horiz = original_shape[1] / k
-
-    # block mask for alpha blending
-    block_mask = np.ones(blocks[0].shape)
-    for i in range(overlap):
-        block_mask[:,i] = block_mask[:,-(i+1)] = block_mask[:,i]*(1.0/(overlap+1))*(i+1)
-        block_mask[i,:] = block_mask[-(i+1),:] = block_mask[i,:]*(1.0/(overlap+1))*(i+1)
-   
-
-   
-
-
-    # Iterate through the image and append to 'blocks.'
-    for i in range(n_vert):
-        for j in range(n_horiz):
-            # Averaging
-            #cropped_block = blocks[n_horiz*i + j, overlap:overlap+k, overlap:overlap+k ]
-            #new_image[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] = blocks[n_horiz*i]
-            #new_image_mask[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] = new_img_mask[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] + 1
-
-            # Alpha Blending - multiply each block by block mask and add to image
-            new_image[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)] = ((blocks[n_horiz*i+j]*
-                block_mask)+new_image[i*k:((i+1)*k+2*overlap), j*k:((j+1)*k+2*overlap)])
-
-
-    # for Averaging
-    #new_image = new_image / new_image_mask
-    new_image = new_image[overlap:(overlap + original_shape[0]), overlap:(overlap+original_shape[1])]
 
     return new_image
