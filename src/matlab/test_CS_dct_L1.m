@@ -6,8 +6,8 @@
 IMAGE_PATH = '../../data/';
 IMAGE_NAME = 'lenna.png';
 IMAGE_SIZE = [500, 500];
-BLOCK_SIZE = 20;
-ALPHA = [1.0, 0.1, 0.01];
+BLOCK_SIZE = 10;
+ALPHA = [1.0];
 RHO = 0.1;
 OVERLAP_PERCENT = 0.5;
 BASIS_OVERSAMPLING = 1.0;
@@ -16,11 +16,11 @@ BASIS_OVERSAMPLING = 1.0;
 img = imresize(rgb2gray(imread([IMAGE_PATH, IMAGE_NAME])), IMAGE_SIZE);
 
 figure;
-subplot(2, 2, 1);
+subplot(1, 2, 1);
 imshow(img, []);
 title('Original Image');
 
-for i = 1:3
+for i = 1:length(ALPHA)
    alpha = ALPHA(i);
    blocks = getBlocks(img, BLOCK_SIZE, OVERLAP_PERCENT);
    
@@ -33,7 +33,7 @@ for i = 1:3
                                    IMAGE_SIZE, OVERLAP_PERCENT);
 
     % Display.
-    subplot(2, 2, i+1);
+    subplot(1, 2, i+1);
     imshow(reconstruction, []);
-    title(sprintf('Compression ratio: %2.1f%%', 100 * RATIO(i)));
+    title(sprintf('Alpha: %f', alpha));
 end
