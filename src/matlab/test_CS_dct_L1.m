@@ -5,8 +5,8 @@
 % Parameters.
 IMAGE_PATH = '../../data/';
 IMAGE_NAME = 'lenna.png';
-IMAGE_SIZE = [500, 500];
-BLOCK_SIZE = 10;
+IMAGE_SIZE = [50, 50];
+BLOCK_SIZE = 25;
 ALPHA = [1.0];
 RHO = 0.1;
 OVERLAP_PERCENT = 0.5;
@@ -37,3 +37,5 @@ for i = 1:length(ALPHA)
     imshow(reconstruction, []);
     title(sprintf('Alpha: %f', alpha));
 end
+
+saveas(gcf, 'cs_dct_rho0p1_alpha1p0_overlap0p5.png');
