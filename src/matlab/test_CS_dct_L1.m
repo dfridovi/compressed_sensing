@@ -1,12 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Test script. Run Fourier L0 compression on an image.
+% Test script. Run L1 compressed sensing on an image.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Parameters.
 IMAGE_PATH = '../../data/';
 IMAGE_NAME = 'lenna.png';
-IMAGE_SIZE = [50, 50];
-BLOCK_SIZE = 25;
+IMAGE_SIZE = [500, 500];
+BLOCK_SIZE = 20;
 ALPHA = [1.0];
 OVERLAP_PERCENT = 0.5;
 BASIS_OVERSAMPLING = 1.0;
@@ -25,15 +25,23 @@ for i = 1:length(ALPHA)
                                             M, N);
    reconstruction = assembleBlocks(reconstructed_blocks, BLOCK_SIZE, ...
                                    IMAGE_SIZE, OVERLAP_PERCENT);
-
+                               
+    % Save coefficients to file.
+    filename = sprintf('../../reconstructions/matlab figures/cs_dct_size%dx%d_alpha%1dp%1d_overlap%1dp%1d_oversample%1dp%1d.mat', ...
+        SIZE(0), SIZE(1), floor(alpha), 10*mod(alpha, 1), ...
+        floor(OVERLAP_PERCENT), 10*mod(OVERLAP_PERCENT, 1), ...
+        floor(BASIS_OVERSAMPLING), 10*mod(BASIS_OVERSAMPLING, 1));
+    save(filename, 'block_coefficients');
+                               
+                               
     % Display.
   	figure;
     imshow(reconstruction, []);
-    title(sprintf('Alpha: %f', alpha));
+    %title(sprintf('Alpha: %f', alpha));
     
-    filename = sprintf('cs_dct_alpha%1dp%1d_overlap%1dp%1d_oversample%1dp%1d.png', ...
-        floor(alpha), 10*mod(alpha, 1), floor(OVERLAP_PERCENT), 10*mod(OVERLAP_PERCENT, 1), ...
+    filename = sprintf('../../reconstructions/matlab figures/cs_dct_size%dx%d_alpha%1dp%1d_overlap%1dp%1d_oversample%1dp%1d.png', ...
+        SIZE(0), SIZE(1), floor(alpha), 10*mod(alpha, 1), ...
+        floor(OVERLAP_PERCENT), 10*mod(OVERLAP_PERCENT, 1), ...
         floor(BASIS_OVERSAMPLING), 10*mod(BASIS_OVERSAMPLING, 1));
     saveas(gcf, filename);
 end
-
