@@ -12,9 +12,9 @@ function coefficients = ...
     block_measured = mixing * block_vector;
     
     % Construct the problem and solve.
-    cvx_begin
+    cvx_begin quiet
     variable coefficients(M * N)
-    minimize(sum_squares(basis * coefficients - block_measured) + ... 
-             2 * alpha * berhu(rho * coefficients / sqrt(alpha), 1))
+    minimize(sum_square(basis * coefficients - block_measured) + ... 
+             2 * alpha * sum(berhu(rho * coefficients / sqrt(alpha), 1)))
     cvx_end
 end
