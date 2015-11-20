@@ -6,7 +6,7 @@
 IMAGE_PATH = '../../data/';
 IMAGE_NAME = 'lenna.png';
 
-IMAGE_SIZE = [48, 48];
+IMAGE_SIZE = [500, 500];
 BLOCK_SIZE = 16;
 ALPHA = [1.0];
 RHO = 0.1;
