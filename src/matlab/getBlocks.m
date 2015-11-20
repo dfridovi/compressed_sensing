@@ -16,7 +16,7 @@ function [ blocks ] = getBlocks( img, k, overlap_percent )
     blocks = zeros(k+2*overlap, k+2*overlap, n_vert*n_horiz);
 
     % Pad image, check new shape
-    padded_img = padarray(img, [overlap, overlap], 'replicate');
+    padded_img = padarray(img, [overlap, overlap], 'symmetric');
 
     % Iterate through the image and append to 'blocks.'
     for i = 0:n_vert-1

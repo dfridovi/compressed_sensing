@@ -7,11 +7,10 @@ IMAGE_PATH = '../../data/';
 IMAGE_NAME = 'lenna.png';
 
 IMAGE_SIZE = [500, 500];
-BLOCK_SIZE = 20;
+BLOCK_SIZE = 16;
 ALPHA = [1.0];
-
-OVERLAP_PERCENT = 0.5;
-BASIS_OVERSAMPLING = 0.4;
+OVERLAP_PERCENT = 1.0;
+BASIS_OVERSAMPLING = 1.0;
 
 % Import the image.
 img = imresize(rgb2gray(imread([IMAGE_PATH, IMAGE_NAME])), IMAGE_SIZE);

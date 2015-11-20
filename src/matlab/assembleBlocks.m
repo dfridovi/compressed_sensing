@@ -24,8 +24,8 @@ function [ new_image ] = assembleBlocks( blocks, k, original_shape, overlap_perc
         for j = 0:n_horiz-1
             % Alpha Blending - multiply each block by block mask and add to image
             new_image(i*k+1:((i+1)*k+2*overlap), j*k+1:((j+1)*k+2*overlap)) =...
-                (blocks(:,:,n_horiz*i+j+1).*block_mask)...
-                +new_image(i*k+1:((i+1)*k+2*overlap), j*k+1:((j+1)*k+2*overlap));
+                blocks(:,:,n_horiz*i+j+1).*block_mask + ...
+                new_image(i*k+1:((i+1)*k+2*overlap), j*k+1:((j+1)*k+2*overlap));
         end
     end
 
