@@ -4,19 +4,18 @@
 % Parameters 
 IMAGE_PATH = '../../data/';
 IMAGE_NAME = 'lenna.png';
-BLOCK_SIZE = 40;
+BLOCK_SIZE = 32;
 ALPHA = 1.0;
 BASIS_OVERSAMPLING = 1.0;
-OVERLAP_PERCENT = 0.5;
-
+OVERLAP = 0.5;
 
 img = imread([IMAGE_PATH IMAGE_NAME]);
 img = rgb2gray(img);
 
 %img = ones(size(img));
 
-blocks = getBlocks(img,BLOCK_SIZE, OVERLAP_PERCENT);
-img_reassembled = assembleBlocks(blocks, BLOCK_SIZE, size(img), OVERLAP_PERCENT);
+blocks = getBlocks(img,BLOCK_SIZE, OVERLAP);
+img_reassembled = assembleBlocks(blocks, BLOCK_SIZE, size(img), OVERLAP);
 
 figure;
 imshow(img_reassembled, []);

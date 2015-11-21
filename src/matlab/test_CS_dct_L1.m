@@ -9,7 +9,7 @@ IMAGE_NAME = 'lenna.png';
 IMAGE_SIZE = [500, 500];
 BLOCK_SIZE = 16;
 ALPHA = [1.0];
-OVERLAP_PERCENT = 1.0;
+OVERLAP_PERCENT = 0.33;
 BASIS_OVERSAMPLING = 1.0;
 
 % Import the image.

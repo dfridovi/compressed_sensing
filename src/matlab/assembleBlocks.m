@@ -1,35 +1,15 @@
-function [ new_image ] = assembleBlocks( blocks, k, original_shape, overlap_percent )
-%assembleBlocks( blocks, k, original_shape, overlap_percent )
-%   Reassemble the image from a list of blocks using alpha blending at
-%   overlap
-
-    overlap = round(k*overlap_percent);
-    new_image = zeros(original_shape(1)+2*overlap, original_shape(2)+2*overlap);
-
-    n_vert = floor(original_shape(1) / k);
-    n_horiz = floor(original_shape(2) / k);
-
-    % block mask for alpha blending
-    block_mask = ones(size(blocks(:,:,1)));
-    for i = 1:overlap*2
-        block_mask(:,i) = block_mask(:,i)*(1.0/(2*overlap+1))*(i);
-        block_mask(:,end-(i-1)) = block_mask(:,i);
-        block_mask(i,:) = block_mask(i,:)*(1.0/(2*overlap+1))*(i);
-        block_mask(end-(i-1),:) = block_mask(i,:);
-    end
+function [ new_image ] = assembleBlocks( blocks, block_size, original_shape, overlap )
+% assembleBlocks( blocks, original_shape, overlap )
+% Reassemble the image from a list of blocks.
     
-
-    % Iterate through the image and append to 'blocks.'
-    for i = 0:n_vert-1
-        for j = 0:n_horiz-1
-            % Alpha Blending - multiply each block by block mask and add to image
-            new_image(i*k+1:((i+1)*k+2*overlap), j*k+1:((j+1)*k+2*overlap)) =...
-                blocks(:,:,n_horiz*i+j+1).*block_mask + ...
-                new_image(i*k+1:((i+1)*k+2*overlap), j*k+1:((j+1)*k+2*overlap));
-        end
+    [M, B] = size(blocks);
+    img_vector = zeros(original_shape(1)*original_shape(2)+2*round(overlap*block_size),1);
+    for i=0:B-1
+        img_vector(i*block_size+1:i*block_size+M) = ...
+            img_vector(i*block_size+1:i*block_size+M) + ...
+            blocks(:,i+1);
     end
-
-    new_image = new_image(overlap+1:(overlap + original_shape(1)),...
-        overlap+1:(overlap+original_shape(2)));
+    new_image = reshape(img_vector(round(overlap*block_size)+1:round(overlap*block_size)...
+        +original_shape(1)*original_shape(2)), original_shape);
 end
 

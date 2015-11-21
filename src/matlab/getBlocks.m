@@ -1,31 +1,19 @@
-function [ blocks ] = getBlocks( img, k, overlap_percent )
+function [ blocks ] = getBlocks( img, k, overlap )
 % getBlocks( img, k, overlap_percent )
-% Break the image up into kxk blocks. Crop if necessary.
+% Break the image up into kx1 blocks. Crop if necessary.
 
     % Throw an error if not grayscale.
     if numel(size(img)) ~= 2
         error('Image is not grayscale. Returning empty block list.')
     end
-    
-    overlap = round(k*overlap_percent);
+    img_vector = reshape(img, numel(img), 1);
+    padded_img_vector = padarray(img_vector, round(overlap * k), 'symmetric');
+    B = floor(numel(img_vector) / k);
+    M = k+2*round(overlap*k);
 
-    
-    n_vert = floor(size(img,1) / k);
-    n_horiz = floor(size(img,2) / k);
-    
-    blocks = zeros(k+2*overlap, k+2*overlap, n_vert*n_horiz);
-
-    % Pad image, check new shape
-    padded_img = padarray(img, [overlap, overlap], 'symmetric');
-
-    % Iterate through the image and append to 'blocks.'
-    for i = 0:n_vert-1
-        for j = 0:n_horiz-1
-            blocks(:,:,n_horiz*i+j+1) = padded_img(i*k+1:((i+1)*k+2*overlap),...
-                j*k+1:((j+1)*k+2*overlap));
-        end
+    window = bartlett(M);
+    blocks = zeros(M,B);
+    for i = 0:B-1
+        blocks(:,i+1) = double(padded_img_vector(i*k+1:i*k+M)).* window;
     end
-
-
 end
-
