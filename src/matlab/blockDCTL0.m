@@ -3,7 +3,7 @@ function coefficients = blockDCTL0(block, k)
     % coefficients.
         
     % Compute the FFT.
-    dct_coefficients = dct(block);
+    dct_coefficients = reshape(dct2(block), numel(block), 1);
     
     % Record the top 'k' coefficients.
     [sorted, indices] = sort(dct_coefficients, 'descend');
