@@ -8,5 +8,5 @@ function coefficients = blockDCTL0(block, k)
     % Record the top 'k' coefficients.
     [sorted, indices] = sort(dct_coefficients, 'descend');
     coefficients = dct_coefficients;
-    coefficients(floor(indices(k:end))) = 0;
+    coefficients(indices(floor(k):end)) = 0;
 end
