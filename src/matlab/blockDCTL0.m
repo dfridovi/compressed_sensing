@@ -6,7 +6,7 @@ function coefficients = blockDCTL0(block, k)
     dct_coefficients = reshape(dct2(block), numel(block), 1);
     
     % Record the top 'k' coefficients.
-    [sorted, indices] = sort(dct_coefficients, 'descend');
+    [sorted, indices] = sort(abs(dct_coefficients), 'descend');
     coefficients = dct_coefficients;
-    coefficients(indices(floor(k):end)) = 0;
+    coefficients(indices(floor(k)+1:end)) = 0;
 end
