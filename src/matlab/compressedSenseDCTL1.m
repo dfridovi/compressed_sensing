@@ -17,7 +17,7 @@ function [dct_basis, block_coefficients] = ...
     mixing = randn(round(M * N * basis_oversampling), M * N);
     
     % Generate the DCT basis.
-    dct_basis = computeDCTBasis(M * N);
+    dct_basis = computeDCTBasis(M, N);
     
     % Pre-mulitply the dct basis by the mixing matrix.
     basis_premultiplied = mixing * dct_basis';
