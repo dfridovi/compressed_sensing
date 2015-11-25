@@ -15,17 +15,17 @@ function [dct_basis, block_coefficients] = ...
     
     % Generate a mixing matrix.
     mixing = randn(round(M * N * basis_oversampling), M * N);
-    
+   
     % Generate the DCT basis.
     dct_basis = computeDCTBasis(M, N);
     
     % Pre-mulitply the dct basis by the mixing matrix.
-    basis_premultiplied = mixing * dct_basis';
+    basis_premultiplied = mixing * dct_basis;
     
     % Iterate over all blocks. Store coefficients in a 2D array.
     block_coefficients = zeros(M * N, B);
     parfor i = 1:B
-       fprintf('Working on block %d of %d...\n', i, B);
+       %fprintf('Working on block %d of %d...\n', i, B);
        block = blocks(:, :, i);
        coefficients = blockCompressedSenseL1(block, alpha, ...
                                              basis_premultiplied, ...

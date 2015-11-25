@@ -12,11 +12,12 @@ function coefficients = ...
     block_measured = mixing * block_vector;
     
     % Construct the problem and solve.
-%     cvx_begin quiet
-%     variable coefficients(M * N)
-%     minimize( sum_square( basis * coefficients - block_measured ) + ... 
-%               rho * sum_square( coefficients ) + ...
-%               alpha * norm( coefficients, 1 ) )
-%     cvx_end
-    [coefficients, info] = lasso(basis, block_measured, 'Lambda', alpha);
+    cvx_begin quiet
+    variable coefficients(M * N)
+    minimize( sum_square( basis * coefficients - block_measured ) + ... 
+              alpha * norm( coefficients, 1 ) )
+    cvx_end
+   % [coefficients, info] = lasso(basis, block_measured, 'Lambda', alpha);
+  %  beta0 = info.Intercept;
+    
 end
