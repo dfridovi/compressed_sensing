@@ -77,6 +77,8 @@ xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
 hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
 ylim([0 10^4])
+xlabel('Oversampling')
+ylabel('Error')
 
 
 subplot(2,1,2);
@@ -87,46 +89,7 @@ xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
 hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
 ylim([0 10^4])
+xlabel('Percent of coefficients used');
+ylabel('Error');
 
 %%
-
-xaxis = xlim;
-x = [xaxis(1):.01:xaxis(2)];
-hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
-plot([0 gamma_plot], [0 error_plot], 'ko');
-text(0,0, '  A');
-text(gamma_plot(1), error_plot(1), '  B');
-text(gamma_plot(2), error_plot(2), '  C');
-text(gamma_plot(3), error_plot(3), '  D');
-hold off;
-xlabel('Gamma'); ylabel('Error');
-
-subplot(2,3,4); plot(sparsity, error, 'linewidth', lw);
-xaxis = xlim;
-x = [xaxis(1):.01:xaxis(2)];
-hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
-plot([100 sparsity_plot], [0 error_plot], 'ko');
-text(100,0, '  A');
-text(sparsity_plot(1), error_plot(1), '  B');
-text(sparsity_plot(2), error_plot(2), '  C');
-text(sparsity_plot(3), error_plot(3), '  D');
-hold off;
-xlabel(sprintf('Percent of coefficeints \n used in reconstruction')); ylabel('Error');
-
-range = 200:300;
-
-subplot(2,3,2); % original image
-imshow(img(range, range), []);
-title('(A) Original Image');
-
-subplot(2,3,3); % gamma = 0.015
-imshow(reconst_plot(range,range,1), []);
-title(sprintf('(B) Error: %4.0f', error_plot(1)));
-
-subplot(2,3,5); % gamma = 0.03
-imshow(reconst_plot(range,range,2), []);
-title(sprintf('(C) Error: %4.0f', error_plot(2)));
-
-subplot(2,3,6); % gamma = 0.07
-imshow(reconst_plot(range,range,3), []);
-title(sprintf('(D) Error: %4.0f', error_plot(3)));
