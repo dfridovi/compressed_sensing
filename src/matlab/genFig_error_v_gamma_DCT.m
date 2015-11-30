@@ -111,7 +111,7 @@ text(sparsity_plot(1), error_plot(1), '  B');
 text(sparsity_plot(2), error_plot(2), '  C');
 text(sparsity_plot(3), error_plot(3), '  D');
 hold off;
-xlabel(sprintf('Percent of coefficeints \n used in reconstruction')); ylabel('Error');
+xlabel(sprintf('Percent of coefficients \n used in reconstruction')); ylabel('Error');
 
 range = 200:300;
 

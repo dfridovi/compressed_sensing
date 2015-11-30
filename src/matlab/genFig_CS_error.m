@@ -72,11 +72,11 @@ lw = 1;
 subplot(2,1,1);
 plot(OS, error, 'linewidth', lw)
 legend('\alpha = 0.01', '\alpha = 0.1', '\alpha = 1', '\alpha = 10')
-xlim([0 1.5]);
+xlim([0.1 1.5]);
 xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
 hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
-ylim([0 10^4])
+%ylim([0 5*10^3])
 xlabel('Oversampling')
 ylabel('Error')
 
@@ -85,10 +85,11 @@ subplot(2,1,2);
 plot(sparsity(1,:),error(1,:), sparsity(2,:),error(2,:),...
     sparsity(3,:),error(3,:),sparsity(4,:),error(4,:),'linewidth', lw)
 
+xlim([8 12]);
 xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
 hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
-ylim([0 10^4])
+ylim([0 5*10^3])
 xlabel('Percent of coefficients used');
 ylabel('Error');
 
