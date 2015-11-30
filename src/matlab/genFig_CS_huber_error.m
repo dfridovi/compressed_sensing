@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Generate figure - Error vs. Gamma ( Compressed Sensing DCT Lasso )
+% Generate figure - Error vs. Gamma ( Compressed Sensing DCT Huber )
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Parameters.
@@ -14,7 +14,7 @@ img = double(imresize(rgb2gray(imread([IMAGE_PATH, IMAGE_NAME])),...
     IMAGE_SIZE));
 
 
-path = '../../reconstructions/matlab figures/cs_dct_lasso/';
+path = '/home/gracekuo/Documents/Developer/compressed_sensing/reconstructions/matlab figures/cs_dct_huber_rho0p1/';
 
 ALPHA = [0.01 0.1 1 10];
 OS = 0.1:0.1:1.5;
@@ -36,7 +36,7 @@ for i = 1:numel(ALPHA)
         os = OS(j);
         d3 = floor(os);
         d4 = floor(mod(os,1)*10);
-        filename = sprintf('cs_dct_size512x512_alpha%dp%s_overlap0p0_oversample%dp%d',...
+        filename = sprintf('cs_dct_size512x512_rho0p1_alpha%dp%s_overlap0p0_oversample%dp%d',...
             d1, d2, d3, d4);
         
         % Import coefficients and png
