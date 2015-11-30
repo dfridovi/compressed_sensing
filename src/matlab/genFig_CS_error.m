@@ -24,7 +24,7 @@ error = zeros(numel(ALPHA), numel(OS));
 sparsity = zeros(numel(ALPHA), numel(OS));
 block_nonzero = zeros(numel(ALPHA), numel(OS), round(IMAGE_SIZE(1)/BLOCK_SIZE)^2);
 
-for i = 1:numel(ALPHA)
+for i = 3 %1:numel(ALPHA)
     % Get filename
     alpha = ALPHA(i);
     d1 = floor(alpha);

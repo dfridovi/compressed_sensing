@@ -14,7 +14,7 @@ img = double(imresize(rgb2gray(imread([IMAGE_PATH, IMAGE_NAME])),...
     IMAGE_SIZE));
 
 
-path = '/home/gracekuo/Documents/Developer/compressed_sensing/reconstructions/matlab figures/cs_dct_huber_rho0p1/';
+path = '../../reconstructions/matlab figures/cs_dct_huber_rho0p1/';
 
 ALPHA = [0.01 0.1 1 10];
 OS = 0.1:0.1:1.5;
@@ -36,7 +36,7 @@ for i = 1:numel(ALPHA)
         os = OS(j);
         d3 = floor(os);
         d4 = floor(mod(os,1)*10);
-        filename = sprintf('cs_dct_size512x512_rho0p1_alpha%dp%s_overlap0p0_oversample%dp%d',...
+        filename = sprintf('cs_dct_huber_size512x512_rho0p1_alpha%dp%s_overlap0p0_oversample%dp%d',...
             d1, d2, d3, d4);
         
         % Import coefficients and png
@@ -71,7 +71,9 @@ lw = 1;
 
 subplot(2,1,1);
 plot(OS, error, 'linewidth', lw)
-legend('\alpha = 0.01', '\alpha = 0.1', '\alpha = 1', '\alpha = 10')
+hold on;
+plot(OS_lasso, error_lasso(3,:),'k', 'linewidth', lw)
+legend('\alpha = 0.01', '\alpha = 0.1', '\alpha = 1', '\alpha = 10', 'Lasso, \alpha = 1')
 xlim([0.1 1.5]);
 xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
@@ -85,11 +87,11 @@ subplot(2,1,2);
 plot(sparsity(1,:),error(1,:), sparsity(2,:),error(2,:),...
     sparsity(3,:),error(3,:),sparsity(4,:),error(4,:),'linewidth', lw)
 
-xlim([8 12]);
+%xlim([8 12]);
 xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
 hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
-ylim([0 5*10^3])
+%ylim([0 5*10^3])
 xlabel('Percent of coefficients used');
 ylabel('Error');
 
