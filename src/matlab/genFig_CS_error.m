@@ -14,7 +14,7 @@ img = double(imresize(rgb2gray(imread([IMAGE_PATH, IMAGE_NAME])),...
     IMAGE_SIZE));
 
 
-path = '../../reconstructions/matlab figures/cs_dct_lasso/';
+path = '../../reconstructions/matlab figures/cs_img_lasso/';
 
 ALPHA = [0.01 0.1 1 10];
 OS = 0.1:0.1:1.5;
@@ -36,7 +36,7 @@ for i = 3 %1:numel(ALPHA)
         os = OS(j);
         d3 = floor(os);
         d4 = floor(mod(os,1)*10);
-        filename = sprintf('cs_dct_size512x512_alpha%dp%s_overlap0p0_oversample%dp%d',...
+        filename = sprintf('cs_img_size512x512_alpha%dp%s_overlap0p0_oversample%dp%d',...
             d1, d2, d3, d4);
         
         % Import coefficients and png
@@ -44,11 +44,12 @@ for i = 3 %1:numel(ALPHA)
         %reconstruction = double(imread([path filename '.png']));
         M = 8;
         N = 8;
-        dct_basis = computeDCTBasis(M, N);
+%	dct_basis = computeDCTBasis(M, N);
+	dct_basis = eye(M * N);
         reconstructed_blocks = reconstructBlocks(dct_basis, block_coefficients, ...
-            M, N);
+						 M, N);
         reconstruction = assembleBlocks(reconstructed_blocks, BLOCK_SIZE, ...
-                                       IMAGE_SIZE, OVERLAP_PERCENT);
+					IMAGE_SIZE, OVERLAP_PERCENT);
         
         error(i,j) = sqrt(sum(sum((img-reconstruction).^2)));
         B = size(block_coefficients,2);
