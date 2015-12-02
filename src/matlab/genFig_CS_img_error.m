@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Generate figure - Error vs. Gamma ( Compressed Sensing DCT Lasso )
+% Generate figure - Error vs. Gamma ( Compressed Sensing DCT Huber )
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Parameters.
@@ -14,7 +14,7 @@ img = double(imresize(rgb2gray(imread([IMAGE_PATH, IMAGE_NAME])),...
     IMAGE_SIZE));
 
 
-path = '../../reconstructions/matlab figures/cs_dct_lasso/';
+path = '../../reconstructions/matlab figures/cs_img_lasso/';
 
 ALPHA = [0.01 0.1 1 10];
 OS = 0.1:0.1:1.5;
@@ -24,7 +24,7 @@ error = zeros(numel(ALPHA), numel(OS));
 sparsity = zeros(numel(ALPHA), numel(OS));
 block_nonzero = zeros(numel(ALPHA), numel(OS), round(IMAGE_SIZE(1)/BLOCK_SIZE)^2);
 
-for i = 3 %1:numel(ALPHA)
+for i = 1:numel(ALPHA)
     % Get filename
     alpha = ALPHA(i);
     d1 = floor(alpha);
@@ -36,7 +36,7 @@ for i = 3 %1:numel(ALPHA)
         os = OS(j);
         d3 = floor(os);
         d4 = floor(mod(os,1)*10);
-        filename = sprintf('cs_dct_size512x512_alpha%dp%s_overlap0p0_oversample%dp%d',...
+        filename = sprintf('cs_img_size512x512_alpha%dp%s_overlap0p0_oversample%dp%d',...
             d1, d2, d3, d4);
         
         % Import coefficients and png
@@ -44,12 +44,11 @@ for i = 3 %1:numel(ALPHA)
         %reconstruction = double(imread([path filename '.png']));
         M = 8;
         N = 8;
-    	dct_basis = computeDCTBasis(M, N);
-        %dct_basis = eye(M * N);
-        reconstructed_blocks = reconstructBlocks(dct_basis, block_coefficients, ...
-						 M, N);
+        
+        reconstructed_blocks = reconstructBlocks(eye(M * N), block_coefficients, ...
+                                                 M, N);
         reconstruction = assembleBlocks(reconstructed_blocks, BLOCK_SIZE, ...
-					IMAGE_SIZE, OVERLAP_PERCENT);
+                                        IMAGE_SIZE, OVERLAP_PERCENT);
         
         error(i,j) = sqrt(sum(sum((img-reconstruction).^2)));
         B = size(block_coefficients,2);
@@ -72,7 +71,9 @@ lw = 1;
 
 subplot(2,1,1);
 plot(OS, error, 'linewidth', lw)
-legend('\alpha = 0.01', '\alpha = 0.1', '\alpha = 1', '\alpha = 10')
+hold on;
+plot(OS_lasso, error_lasso(3, :),'k', 'linewidth', lw)
+legend('\alpha = 0.01', '\alpha = 0.1', '\alpha = 1', '\alpha = 10', 'Lasso, \alpha = 1')
 xlim([0.1 1.5]);
 xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
@@ -86,11 +87,11 @@ subplot(2,1,2);
 plot(sparsity(1,:),error(1,:), sparsity(2,:),error(2,:),...
     sparsity(3,:),error(3,:),sparsity(4,:),error(4,:),'linewidth', lw)
 
-xlim([8 12]);
+%xlim([8 12]);
 xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];
 hold on; plot(x, epsilon*ones(size(x)), '--', 'linewidth', lw);
-ylim([0 5*10^3])
+%ylim([0 5*10^3])
 xlabel('Percent of coefficients used');
 ylabel('Error');
 
