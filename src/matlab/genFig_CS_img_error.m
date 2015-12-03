@@ -73,7 +73,7 @@ subplot(2,1,1);
 plot(OS, error, 'linewidth', lw)
 hold on;
 plot(OS_lasso, error_lasso(3, :),'k', 'linewidth', lw)
-legend('\alpha = 0.01', '\alpha = 0.1', '\alpha = 1', '\alpha = 10', 'Lasso, \alpha = 1')
+legend('\alpha = 0.01', '\alpha = 0.1', '\alpha = 1', '\alpha = 10', 'DCT, \alpha = 1')
 xlim([0.1 1.5]);
 xaxis = xlim;
 x = [xaxis(1):.01:xaxis(2)];

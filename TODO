@@ -1,2 +1,0 @@
-To do list:
-* Try LASSO on vanilla DCT (e.g. replace "top k" with sparse LASSO solution -- we expect this to give a worse result)
