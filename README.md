@@ -1,5 +1,5 @@
 # compressed_sensing
-[![License](https://img.shields.io/badge/license-BSD-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](LICENSE)
 
 Image compression using compressed sensing.
 
